@@ -1,0 +1,78 @@
+{% extends 'flatpages/default.html' %}
+
+{% load static %}
+
+{% block content %}
+<form method="post">
+    <fieldset class="full-screen" style="display: flex; flex-direction: column; margin-top: -60px; border: none;">
+        <p style="font-family: AstraBoldItalic; font-size: 70px; text-align: center; margin-top: 0px; color: rgb(211, 206, 191);">
+            Добавление рекламации
+        </p>
+        <div style="display: flex; flex-direction: row;">
+            <fieldset style="display: flex; flex-direction: column; justify-content: space-between; max-width: 300px; width: 100%; padding: 20px 30px; border: none; background-color: rgb(33, 61, 105);">
+                {% csrf_token %}
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Машина (Зав. №)
+                    <select name="machine" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите модель техники</option>
+                        {% for machine in machines %}
+                        <option value="{{ machine.id }}">{{ machine.serial_number }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Дата отказа<input type="date" name="failure_date" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Наработка, м/час<input type="text" name="operating_hours" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Узел отказа
+                    <select name="failure_node" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите узел отказа</option>
+                        {% for type in failure_node %}
+                        <option value="{{ type.id }}">{{ type.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Описание отказа<input type="text" name="failure_description" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Дата заказ-нарядов<input type="date" name="order_date" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+            </fieldset>
+            <fieldset style="display: flex; flex-direction: column; justify-content: space-between; max-width: 300px; width: 100%; padding: 20px 30px; border: none; background-color: rgb(33, 61, 105);">
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Способ восстановления
+                    <select name="recovery_method" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите способ восстановления</option>
+                        {% for method in recovery_method %}
+                        <option value="{{ method.id }}">{{ method.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Используемые запасные части<input type="text" name="used_spare_parts" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Дата восстановления<input type="date" name="recovery_date" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Время простоя техники<input type="text" name="downtime" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Способ восстановления
+                    <select name="service_company" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите способ восстановления</option>
+                        {% for service_company in services_company %}
+                        <option value="{{ service_company.id }}">{{ service_company.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button style="font-family: AstraBold; margin: 20px 0 0 0; font-size: 15px;" type="submit">Создать</button>
+            </fieldset>
+        </div>
+    </fieldset>
+</form>
+{% endblock %}

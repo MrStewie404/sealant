@@ -1,0 +1,163 @@
+{% extends 'flatpages/default.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="header" style="margin: 0 auto; margin-bottom: 50px; max-width: 70%;">
+        <div class="logo" style="margin: 10px;">
+            <img style="width: 120px;" src="/static/materials/Logotype.svg">
+        </div>
+        <div>
+            <a class="contact" href="https://t.me/+78352201209" style="font-family: AstraBold;">+7 (835) 220 12 09</a>
+        </div>
+        <div style="margin: 10px;">
+            {% if user.is_authenticated %}
+                <a class="auth" href="accounts/profile" style="font-family: AstraBold;"> {{ user.first_name }} {{ user.last_name }} </a>
+            {% else %}
+                <a class="auth" href="accounts/login/" style="padding: 10px 20px;">Вход</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="header">
+        <p style="margin: 0 auto; font-weight: 900; font-size: 40px; font-family: AstraBold; text-align: center;">Электронная сервисная книжка "Мой Силант"</p>
+    </div>
+    <div class="content">
+        <p style="display: flex; justify-content: center; font-family: Astra;">Проверьте комплектацию и технические характеристики техники Силант</p>
+        <div class="search-form" style="display: flex; justify-content: center;">
+            <label style="font-family: Astra; font-size: larger;">Заводской номер:</label>
+            <div>
+              <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="factory_number" name="factory_number">
+            </div>
+            <button id="search-button" type="submit">Поиск</button>
+        </div>
+        <div id="table_result" style="color: rgb(234, 229, 216); padding: 50px; transition: all 1s ease;">
+            <div id="result_message" class="result-message" style="display: flex; justify-content: space-between;">
+                <p style="font-family: AstraBold; font-size: larger;">Результат поиска:</p>
+                <p style="font-family: AstraItalic; font-size: large;">Информация о комплектации и технических характеристиках Вашей техники</p>
+            </div>
+            <div style="overflow-x: auto; max-width: 100%; max-height: 100%; background-color: rgba(0, 0, 0, 0.3);">
+                <table>
+                    <thead>
+                        <tr id="table_titles" style="background-color: rgb(234, 229, 216); transition: all 1s ease;">
+                            <th>Зав. № машины</th>
+                            <th>Модель техники</th>
+                            <th>Модель двигателя</th>
+                            <th>Зав. № двигателя</th>
+                            <th>Модель трансмиссии</th>
+                            <th>Зав. № трансмиссии</th>
+                            <th>Модель ведущего моста</th>
+                            <th>Зав. № ведущего моста</th>
+                            <th>Модель управляемого моста</th>
+                            <th>Зав. № управляемого моста</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_data">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'flatpages/footer.html' %}
+
+<script>
+    const socket = new WebSocket("ws://localhost:9090/api/machines/");
+    let waitingOn = false;
+    let memoryInput = ''
+
+    socket.onmessage = function(e) {
+        console.log('WebSocket message received:', e.data);
+        const machineSerialNumber = document.querySelector('#factory_number');
+        try{
+            const responseData = JSON.parse(e.data)
+            if (responseData.error == 1) {
+                machineSerialNumber.style.backgroundColor = 'rgb(33, 61, 105)';
+                setTimeout(() => {
+                    machineSerialNumber.style.backgroundColor = 'white';
+                }, 400);
+            } else if (responseData.error == 3) {
+                waitingOn = false;
+                machineSerialNumber.style.backgroundColor = 'red';
+                setTimeout(() => {
+                    machineSerialNumber.style.backgroundColor = 'white';
+                }, 400);
+            } else {
+                const tableResult = document.querySelector('#result_message');
+                const tableTitles = document.querySelector('#table_titles');
+                const tableData = document.querySelector('#table_data')
+                tableResult.style.color = 'black'
+                tableData.style.backgroundColor = 'rgb(202, 200, 191)'
+                tableData.style.color = 'black'
+                tableTitles.style.backgroundColor = 'rgb(98, 95, 89)'
+                console.log(responseData)
+                let html = ``
+                responseData.machine_info.forEach(object => {
+                    html += `<tr id="object_${object.id}" style="background-color: rgb(234, 229, 216); transition: all 1s;"></tr>`
+                })
+                document.querySelector('#table_data').innerHTML = html;
+                responseData.machine_info.forEach(object =>{
+                    let html = ``
+                    responseData.fields.forEach(field => {
+                        if(object.hasOwnProperty(field)) {
+                            if (object[field].hasOwnProperty('name')) {
+                                html += `<td> <p class="clue" style="text-decoration: underline"; data-clue="${object[field]['description']}"> ${object[field]['name']} </p> </td>`
+                            } else {
+                                html += `<td>${object[field]}</td>`
+                            }
+                        }
+                        document.querySelector(`#object_${object.id}`).innerHTML = html;
+                    })
+                });
+            }
+            waitingOn = false;
+            
+        } catch (e) {
+           console.error('Ошибка при парсинге JSON', e)
+        }
+    };
+
+    document.querySelector('#search-button').onclick = function(e) {
+        const machineSerialNumber = document.querySelector('#factory_number').value;
+        if (machineSerialNumber != memoryInput) {            
+            waitingOn = true;
+            waiting_answer();
+            const requestData = {
+                serial_number: machineSerialNumber,
+                api_key: 123
+            };
+            memoryInput = machineSerialNumber;
+            socket.send(JSON.stringify(requestData));
+        }
+    };
+
+    function waiting_answer() {
+        const machineSerialNumber = document.querySelector('#factory_number');
+        machineSerialNumber.style.border = 'solid 2px rgb(33, 61, 105)'
+        setTimeout(() => {
+            machineSerialNumber.style.border = 'solid 2px white';
+        }, 1000);
+        if (waitingOn == true) {
+             console.log('waiting...');
+            setTimeout(() => {
+                waiting_answer(waitingOn);
+            }, 1500);
+        }
+    }
+
+    socket.onopen = () => {
+        console.log('WebSocket connection opened');
+    };
+
+    socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    socket.onclose = (event) => {
+        if (event.wasClean) {
+            console.log(`WebSocket connection closed cleanly, code=${event.code}`);
+        } else {
+            console.error('WebSocket connection died');
+        }
+    };
+</script>
+
+{% endblock %}

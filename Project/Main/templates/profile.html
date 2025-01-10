@@ -1,0 +1,203 @@
+{% extends 'flatpages/default.html' %}
+{% load static %}
+{% load filters %}
+
+{% block content %}
+{% if user.is_authenticated %}
+<style>
+    .table-container {
+        display: none;
+        margin: 10px auto;
+        max-width: 80%;
+    }
+    .table-container.active{
+        display: block;
+    }
+</style>
+{{ request.user.id|json_script:"json-userid" }}
+<fieldset class="full-screen" style="border: none;">
+    <div class="background_color_blue" style="padding: 5px 20px; max-width: 450px; margin: 0 auto;">
+        <div style="display: flex; flex-direction: row; justify-content: space-between;">
+            <p style="font-family: AstraBold; color: white; font-size: xx-large; margin: 5px auto 0 0;">
+                {{ user.first_name }}
+                {{ user.last_name }}
+            </p>
+            <a href="/accounts/logout/" ><img src="{% static 'materials/logout_icon.svg' %}" class="white_filter" style="width: 25px; margin-top: 50%;"> </a>
+        </div>
+        <p style="font-family: AstraItalic; color: #C6C6C6;"> {{ user.groups.all.0 }} </p>
+    </div>
+    <div style="margin: 10px auto; font-family: Astra;">
+        <nav class="background_color_blue" style="display: flex; justify-content: space-between; max-width: 450px; margin: 10px auto; margin-bottom: 10px; padding: 10px;">
+            <button data-table="machines" style="margin-left: 0;">Машины</button>
+            <button data-table="maintenance">ТО</button>
+            <button data-table="claim">Рекламация</button>
+            <button data-table="others">Другое</button>
+        </nav>
+        <div>
+            <div class="table-container" id="machines">
+                {% include './machine.html' %}
+            </div>
+
+            <div class="table-container" id="maintenance">
+                {% include './maintenance.html' %}
+            </div>
+
+            <div class="table-container" id="claim">
+                {% include './claim.html' %}
+            </div>
+
+            <div class="table-container" id="others" style="max-width: 450px;">
+                <div id="table-content" class="background_color_blue" style="color: white;">
+                    <div class="header" style="display: flex; flex-direction: row; justify-content: space-between; margin: 5px auto; width: 95%;">
+                        <p style="font-size: x-large; margin: auto 0;">API-ключи</p>
+                        <a href="/apikey/create" class="auth" style="text-decoration: none; margin: 10px 5px; padding: 5px 10px;">
+                        Создать
+                        </a>
+                    </div>
+                    <div style="display: flex; flex-direction: column; overflow-y: auto; max-height: 200px; color: white; padding: 10px;">
+                        {% if api_keys %}
+                            {% for key in api_keys %}
+                                <div class="header" style="display: flex; flex-direction: row; width: 100%;">
+                                    <a href="/apikey/delete/{{ key.id }}" style="border: solid 5px rgba(128, 128, 128, 0); border-radius: 10px; margin: 0;">
+                                        <button style="padding: 5px; margin-left: 0;">
+                                            <img src="{% static 'materials/bin.svg' %}" class="white_filter" style="width: 30px; height: 20px;">
+                                        </button>
+                                    </a>
+                                    <section style="width: 100%;">
+                                        <button class="show-modal" style="width: 95%;" >{{ key.name }}</button>
+                                        <span class="overlay"></span>
+                                        <div class="modal-box" style="font-family: AstraBold;">
+                                            <i class="fa-regular fa-circle-check"></i>
+                                            <h2>{{ key.name }}</h2>
+                                            <span id="text-to-copy-{{ key.id }}" style="text-decoration: underline; transition: all 1s;" class="copyable-text">{{ key.key|string_cutter:30 }}</span>
+                                            <h3>{{ key.description }}</h3>
+                                            <div class="buttons">
+                                                <button class="copy-button" data-copy-text="{{ key.key }}" id="copy-button-{{ key.id }}">Скопировать</button>
+                                                <button class="close-btn">Закрыть</button>
+                                                <a href="/apikey/delete/{{ key.id }}" style="border: solid 5px rgba(128, 128, 128, 0); border-radius: 10px; margin: 0;">
+                                                    <button>Удалить</button>
+                                                </a>
+                                            </div>
+                                        </div>                            
+                                    </section>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p style="text-align: center; font-family: AstraBold; font-size: larger;"> Ключи отсутствуют </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</fieldset>
+<script>
+    const userid = JSON.parse(document.getElementById('json-userid').textContent);
+
+    function getPageNameFromPath() {
+        const currentPath = window.location.pathname;
+        const trimmedPath = currentPath.startsWith('/') ? currentPath.substring(1) : currentPath;
+        const trimmedEndPath = trimmedPath.endsWith('/') ? trimmedPath.slice(0, -1) : trimmedPath;
+        const pathSegments = trimmedEndPath.split('/');
+        const pageName = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : '';
+        return pageName;
+    }
+
+    const pageName = getPageNameFromPath();
+
+    const buttons = document.querySelectorAll('nav button');
+    const tableContainers = document.querySelectorAll('.table-container');
+    function activateTable(tableId) {
+        tableContainers.forEach(container => container.classList.remove('active'));
+        document.getElementById(tableId).classList.add('active');
+    }
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            const table = this.getAttribute('data-table');
+            activateTable(table);
+            const url = `/accounts/profile/${table}/`;
+            history.pushState({table: table}, '', url);
+            buttons.forEach(btn => {
+                btn.style.backgroundColor = '';
+                btn.style.border = 'solid 2px #163E6C';
+            });
+            this.style.backgroundColor = '#163E6C';
+            this.style.border = 'solid 2px #D10A10';
+        });
+    });
+    window.addEventListener('popstate', function(event) {
+        if (event.state && event.state.table) {
+            activateTable(event.state.table);
+            console.log(`${event.state.table}`);
+        } else {
+           activateTable('{{ table_type }}');
+           console.log('{{ table_type }}');
+        }
+    });
+
+    try {
+        activateTable(pageName);
+    } catch (error) {
+        activateTable('machines');
+    };
+
+    const sections = document.querySelectorAll("section");
+    sections.forEach(section => {
+    const showBtn = section.querySelector(".show-modal");
+    const overlay = section.querySelector(".overlay");
+    const closeBtn = section.querySelector(".close-btn");
+    if (showBtn && overlay && closeBtn) {
+        showBtn.addEventListener("click", () => {
+            section.classList.add("active");
+        });
+        overlay.addEventListener("click", () => {
+            section.classList.remove("active");
+        });
+        closeBtn.addEventListener("click", () => {
+            section.classList.remove("active");
+        });
+    } else {
+        console.error("Не все необходимые элементы найдены в секции:", section);
+    }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('button.copy-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const textToCopy = this.getAttribute('data-copy-text');
+            const buttonId = this.getAttribute('id').replace('copy-button-', 'text-to-copy-');
+            const elementToChangeColor = document.getElementById(buttonId);
+              const copyMessage = document.getElementById('copy-message');
+            if (textToCopy && elementToChangeColor) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    elementToChangeColor.style.color = 'green';
+                    setTimeout(() => {
+                        elementToChangeColor.style.color = '';
+                    }, 500);
+                         if (copyMessage) {
+                             copyMessage.textContent = 'Скопировано!';
+                             copyMessage.style.color = "green";
+                            setTimeout(() => {
+                                copyMessage.textContent = '';
+                                 copyMessage.style.color = '';
+                            }, 200);
+                            }
+                }, (err) => {
+                    if (copyMessage) {
+                         copyMessage.textContent = 'Ошибка при копировании';
+                        copyMessage.style.color = "red";
+                    }
+                    console.error('Не удалось скопировать текст: ', err);
+                });
+            } else {
+                 if(copyMessage) {
+                      copyMessage.textContent = 'Не удалось найти текст';
+                      copyMessage.style.color = "red";
+                    }
+            }
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

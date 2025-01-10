@@ -1,0 +1,221 @@
+{% load static %}
+{% block content %}
+<div id="table_result">
+    <!-- <div class="search-form" style="display: flex; justify-content: center;">
+        <label style="font-family: Astra; font-size: larger;">Заводской номер:</label>
+        <div>
+          <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="factory_number" name="factory_number">
+        </div>
+        <button id="search-button" type="submit">Поиск</button>
+    </div> -->
+    <div id="result_message" class="result-message" style="display: flex; justify-content: space-between;">
+        <p id="amount_machine" style="font-family: AstraBold; font-size: larger; margin: 0;">&nbsp;</p>
+    </div>
+    <div>
+        <div style="display: flex; flex-direction: row; width: 100%; justify-content: space-between;">
+            <a href="/create/machine/">
+                <button class="different_button" style="width: 100%; margin-left: 0; font-size: 15px;">Создать новую машину</button>
+            </a>
+            <button id="search-button" type="submit">Поиск</button>
+        </div>
+        <p style="width: 100%; background-color: rgba(255, 255, 255, 0.404); height: 5px; margin: 0 auto;"></p>
+    </div>
+    <div style="overflow-x: auto; max-width: 100%; max-height: 100%; background-color: rgba(0, 0, 0, 0.3);">
+        <table>
+            <thead>
+                <tr id="table_titles" style="background-color: rgb(98, 95, 89); color: white;">
+                    <th>
+                        Зав. № машины
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="serial_number">
+                    </th>
+                    <th>
+                        Модель техники
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="equipment_model">
+                    </th>
+                    <th>
+                        Модель двигателя
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="engine_model">
+                    </th>
+                    <th>
+                        Зав. № двигателя
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="engine_serial_number">
+                    </th>
+                    <th>
+                        Модель трансмиссии
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="transmission_model">
+                    </th>
+                    <th>
+                        Зав. № трансмиссии
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="transmission_serial_number">
+                    </th>
+                    <th>
+                        Модель ведущего моста
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="drive_axle_model">
+                    </th>
+                    <th>
+                        Зав. № ведущего моста
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="drive_axle_serial_number">
+                    </th>
+                     <th>
+                        Модель управляемого моста
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="steerable_axle_model">
+                    </th>
+                    <th>
+                        Зав. № управляемого моста
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="steerable_axle_serial_number">
+                    </th>
+                    <th>
+                        Договор поставки №, дата
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="supply_contract_number">
+                    </th>
+                    <th>
+                        Дата отгрузки с завода
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="date" id="shipment_date">
+                    </th>
+                    <th>
+                        Грузополучатель (конечный потребитель)
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="consignee">
+                    </th>
+                    <th>
+                        Адрес поставки (эксплуатации)
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="delivery_address">
+                    </th>
+                     <th>
+                        Комплектация (доп. опции)
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="configuration">
+                    </th>
+                    <th>
+                        Клиент
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="client">
+                    </th>
+                    <th>
+                        Сервисная компания
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="service_company">
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="table_data">
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    const machines_api = new WebSocket("ws://localhost:9090/api/machines/");
+    let machinesWaitingOn = false;
+    let machineMemoryInput = ' ';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const tableTitles = document.getElementById('table_titles');
+
+        if (tableTitles) {
+            const inputs = tableTitles.querySelectorAll('input.search-input');
+
+            inputs.forEach(currentInput => {
+                currentInput.addEventListener('input', function() {
+                    inputs.forEach(input => {
+                    if (input !== currentInput) {
+                        input.value = '';
+                    }
+                    });
+                });
+            });
+        } else {
+            console.error("Элемент с id 'table_titles' не найден.");
+        }
+    });
+
+    machines_api.onmessage = function(e) {
+        const machineSerialNumber = document.querySelector('#factory_number');
+        try{
+            const responseData = JSON.parse(e.data);
+            if (responseData.error == 1) {
+                machineSerialNumber.style.backgroundColor = 'rgb(33, 61, 105)';
+                setTimeout(() => {
+                    machineSerialNumber.style.backgroundColor = 'white';
+                }, 400);
+            } else if (responseData.error == 3) {
+                machinesWaitingOn = false;
+                machineSerialNumber.style.backgroundColor = 'red';
+                setTimeout(() => {
+                    machineSerialNumber.style.backgroundColor = 'white';
+                }, 400);
+            } else {
+                document.querySelector('#amount_machine').textContent = `Результат поиска: ${responseData.machine_info.length}`
+                const tableResult = document.querySelector('#result_message');
+                const tableTitles = document.querySelector('#table_titles');
+                const tableData = document.querySelector('#table_data');
+                tableResult.style.color = 'black';
+                tableData.style.backgroundColor = 'rgb(202, 200, 191)';
+                tableData.style.color = 'black';
+                tableTitles.style.backgroundColor = 'rgb(98, 95, 89)';
+                let html = ``;
+                responseData.machine_info.forEach(object => {
+                    html += `<tr id="machine_${object.id}" style="background-color: rgb(234, 229, 216); transition: all 1s;"></tr>`;
+                })
+                document.querySelector('#table_data').innerHTML = html;
+                responseData.machine_info.forEach(object =>{
+                    let html = ``;
+                    responseData.fields.forEach(field => {
+                        if(object.hasOwnProperty(field)) {
+                            if (object[field].hasOwnProperty('name')) {
+                                html += `<td> <a style="text-decoration: none;" href="/description/?last_page=${window.location.href}&table_title=${123}&name=${object[field]['name']}&description=${object[field]['description']}" class="clue" style="text-decoration: underline"; data-clue="${object[field]['description']}" target="_blank"> ${object[field]['name']} </a> </td>`;
+                            } else {
+                                html += `<td>${object[field]}</td>`;
+                            }
+                        }
+                        document.querySelector(`#machine_${object.id}`).innerHTML = html;
+                    })
+                });
+            }
+            machinesWaitingOn = false;
+            
+        } catch (e) {
+           console.error('Ошибка при парсинге JSON', e)
+        }
+    };
+
+    document.querySelector('#search-button').onclick = function(e) {
+        const machineSerialNumber = document.querySelector('#factory_number').value;
+        if (machineSerialNumber != machineMemoryInput) {            
+            machinesWaitingOn = true;
+            waiting_answer();
+            const requestData = {
+                serial_number: machineSerialNumber,
+                api_key: userid
+            };
+            machineMemoryInput = machineSerialNumber;
+            machines_api.send(JSON.stringify(requestData));
+        }
+    };
+
+    function waiting_answer() {
+        const machineSerialNumber = document.querySelector('#factory_number');
+        machineSerialNumber.style.border = 'solid 2px rgb(33, 61, 105)'
+        setTimeout(() => {
+            machineSerialNumber.style.border = 'solid 2px white';
+        }, 1000);
+        if (machinesWaitingOn == true) {
+             console.log('waiting...');
+            setTimeout(() => {
+                waiting_answer(machinesWaitingOn);
+            }, 1500);
+        }
+    }
+
+    machines_api.onopen = () => {
+        console.log('WebSocket connection opened');
+    };
+
+    machines_api.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    machines_api.onclose = (event) => {
+        if (event.wasClean) {
+            console.log(`WebSocket connection closed cleanly, code=${event.code}`);
+        } else {
+            console.error('WebSocket connection died');
+        }
+    };
+</script>
+{% endblock %}

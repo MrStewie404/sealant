@@ -1,0 +1,114 @@
+{% extends 'flatpages/default.html' %}
+
+{% load static %}
+
+{% block content %}
+<form method="post">
+    <fieldset class="full-screen" style="display: flex; flex-direction: column; margin-top: -60px; border: none;">
+        <p style="font-family: AstraBoldItalic; font-size: 70px; text-align: center; margin-top: 0px; color: rgb(211, 206, 191);">
+            Создание машины
+        </p>
+        <div style="display: flex; flex-direction: row;">
+            <fieldset style="display: flex; flex-direction: column; justify-content: space-between; max-width: 300px; width: 100%; padding: 20px 30px; border: none; background-color: rgb(33, 61, 105);">
+                {% csrf_token %}
+                <div style="font-family: AstraBold; color: white; font-size: 20px; ">
+                    Зав. № машины <input type="text" name="serial_number" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Модель техники
+                    <select name="equipment_model" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите модель техники</option>
+                        {% for equipment_model in equipment_models %}
+                        <option value="{{ equipment_model.id }}">{{ equipment_model.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>  
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Модель двигателя
+                    <select name="engine_model" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите модель двигателя</option>
+                        {% for engine_model in engine_models %}
+                        <option value="{{ engine_model.id }}">{{ engine_model.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Зав. № двигателя <input type="text" name="engine_serial_number" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Модель трансмиссии
+                    <select name="transmission_model" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите модель трансмиссии</option>
+                        {% for transmission_model in transmission_models %}
+                        <option value="{{ transmission_model.id }}">{{ transmission_model.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Зав. № трансмиссии <input type="text" name="transmission_serial_number" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Модель ведущего моста
+                    <select name="drive_axle_model" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите модель ведущего моста</option>
+                        {% for drive_axle_model in drive_axle_models %}
+                        <option value="{{ drive_axle_model.id }}">{{ drive_axle_model.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                   Зав. № ведущего моста <input type="text" name="drive_axle_serial_number" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Модель управляемого моста
+                    <select name="steerable_axle_model" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите модель управляемого моста</option>
+                        {% for steerable_axle_model in steerable_axle_models %}
+                        <option value="{{ steerable_axle_model.id }}">{{ steerable_axle_model.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Зав. № управляемого моста <input type="text" name="steerable_axle_serial_number" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+            </fieldset>
+            <fieldset style="display: flex; flex-direction: column; justify-content: space-between; max-width: 300px; width: 50%; padding: 20px 30px; border: none; background-color: rgb(33, 61, 105);">
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Договор поставки №, дата <input type="text" name="supply_contract_number" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Дата отгрузки с завода <input type="date" name="shipment_date" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Грузополучатель (конечный потребитель) <input type="text" name="consignee" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Адрес поставки (эксплуатации) <input type="text" name="delivery_address" style="width: 100%; height: 20px; padding-right: 0;">
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Комплектация (доп. опции) <textarea name="configuration" style="width: 100%; height: 60px; padding-right: 0; resize: vertical;"></textarea>
+                </div>
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Клиент
+                    <select name="client" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите клиента</option>
+                        {% for client in clients %}
+                        <option value="{{ client.id }}">{{ client.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>            
+                <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                    Клиент
+                    <select name="service_company" style="width: 100%; height: 20px; padding-right: 0;">
+                        <option value="" disabled selected>Выберите сервисную компанию</option>
+                        {% for service_company in services_company %}
+                        <option value="{{ service_company.id }}">{{ service_company.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button style="font-family: AstraBold; margin: 20px 0 0 0; font-size: 15px;" type="submit">Создать</button>
+            </fieldset>
+        </div>
+    </fieldset>
+</form>
+{% endblock %}

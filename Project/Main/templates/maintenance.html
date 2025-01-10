@@ -1,0 +1,139 @@
+{% load static %}
+{% block content %}
+<div id="table_result">
+    <div class="search-form" style="display: flex; justify-content: center;">
+        <label style="font-family: Astra; font-size: larger;">Заводской номер:</label>
+        <div>
+          <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="factory_number_maintenance" name="factory_number_maintenance">
+        </div>
+        <button id="search-button-maintenance" type="submit">Поиск</button>
+    </div>
+    <div id="result_message_maintenance" class="result-message" style="display: flex; justify-content: space-between;">
+        <p id="amount_maintenance" style="font-family: AstraBold; font-size: larger;"></p>
+        <p style="font-family: AstraItalic; font-size: large;">Информация о техническом осмотре техники</p>
+    </div>
+    <div>
+        <a href="/create/maintenance/">
+            <button class="different_button" style="width: 100%; margin-left: 0; font-size: 15px;">Добавить технический осмотр</button>
+        </a>
+        <p style="width: 100%; background-color: rgba(255, 255, 255, 0.404); height: 5px; margin: 0 auto;"></p>
+    </div>
+    <div style="overflow-x: auto; max-width: 100%; max-height: 100%; background-color: rgba(0, 0, 0, 0.3);">
+        <table>
+            <thead>
+                <tr id="table_titles_maintenance" style="background-color: rgb(98, 95, 89); color: white;">
+                    <th>Машина (Зав. №)</th>
+                    <th>Вид ТО</th>
+                    <th>Дата проведения ТО</th>
+                    <th>Наработка, м/час</th>
+                    <th>№ заказ-наряда</th>
+                    <th>Дата заказ-нарядов</th>
+                    <th>Сервисная компания</th>
+                </tr>
+            </thead>
+            <tbody id="table_data_maintenance">
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    const maintenance_api = new WebSocket("ws://localhost:9090/api/maintenance/");
+    let maintenanceWaitingOn = false;
+    let maintenanceMemoryInput = ' '
+
+    maintenance_api.onmessage = function(e) {
+        // console.log('WebSocket message received:', e.data);
+        const machineSerialNumber = document.querySelector('#factory_number_maintenance');
+        try{
+            const responseData = JSON.parse(e.data)
+            if (responseData.error == 1) {
+                machineSerialNumber.style.backgroundColor = 'rgb(33, 61, 105)';
+                setTimeout(() => {
+                    machineSerialNumber.style.backgroundColor = 'white';
+                }, 400);
+            } else if (responseData.error == 3) {
+                maintenanceWaitingOn = false;
+                machineSerialNumber.style.backgroundColor = 'red';
+                setTimeout(() => {
+                    machineSerialNumber.style.backgroundColor = 'white';
+                }, 400);
+            } else {
+                document.querySelector('#amount_maintenance').textContent = `Результат поиска: ${responseData.maintenance_info.length}`
+                const tableResult = document.querySelector('#result_message_maintenance');
+                const tableTitles = document.querySelector('#table_titles_maintenance');
+                const tableData = document.querySelector('#table_data_maintenance')
+                tableResult.style.color = 'black'
+                tableData.style.backgroundColor = 'rgb(202, 200, 191)'
+                tableData.style.color = 'black'
+                tableTitles.style.backgroundColor = 'rgb(98, 95, 89)'
+                let html = ``
+                responseData.maintenance_info.forEach(object => {
+                    html += `<tr id="maintenance_${object.id}" style="background-color: rgb(234, 229, 216); transition: all 1s;"></tr>`
+                })
+                document.querySelector('#table_data_maintenance').innerHTML = html;
+                responseData.maintenance_info.forEach(object =>{
+                    let html = ``
+                    responseData.fields.forEach(field => {
+                        if(object.hasOwnProperty(field)) {
+                            if (object[field].hasOwnProperty('name')) {
+                                html += `<td> <a style="text-decoration: none;" href="/description/?last_page=${window.location.href}&table_title=${123}&name=${object[field]['name']}&description=${object[field]['description']}" class="clue" style="text-decoration: underline"; data-clue="${object[field]['description']}" target="_blank"> ${object[field]['name']} </a> </td>`
+                            } else {
+                                html += `<td>${object[field]}</td>`
+                            }
+                        }
+                        document.querySelector(`#maintenance_${object.id}`).innerHTML = html;
+                    })
+                });
+            }
+            maintenanceWaitingOn = false;
+            
+        } catch (e) {
+           console.error('Ошибка при парсинге JSON', e)
+        }
+    };
+
+    document.querySelector('#search-button-maintenance').onclick = function(e) {
+        const maintenanceSerialNumber = document.querySelector('#factory_number_maintenance').value;
+        if (maintenanceSerialNumber != maintenanceMemoryInput) {            
+            maintenanceWaitingOn = true;
+            waiting_answer_maintenance();
+            const requestData = {
+                serial_number: maintenanceSerialNumber,
+                api_key: userid
+            };
+            maintenanceMemoryInput = maintenanceSerialNumber;
+            maintenance_api.send(JSON.stringify(requestData));
+        }
+    };
+
+    function waiting_answer_maintenance() {
+        const machineSerialNumber = document.querySelector('#factory_number_maintenance');
+        machineSerialNumber.style.border = 'solid 2px rgb(33, 61, 105)'
+        setTimeout(() => {
+            machineSerialNumber.style.border = 'solid 2px white';
+        }, 1000);
+        if (maintenanceWaitingOn == true) {
+             console.log('waiting...');
+            setTimeout(() => {
+                waiting_answer_maintenance(maintenanceWaitingOn);
+            }, 1500);
+        }
+    }
+
+    maintenance_api.onopen = () => {
+        console.log('WebSocket connection opened');
+    };
+
+    maintenance_api.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    maintenance_api.onclose = (event) => {
+        if (event.wasClean) {
+            console.log(`WebSocket connection closed cleanly, code=${event.code}`);
+        } else {
+            console.error('WebSocket connection died');
+        }
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static 'default/styles.css' %}" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{% static 'materials/favicon.ico' %}"/>
+    <title>Мой Силант</title>
+</head>
+<body class="background_color_beige">
+    {% block content %}
+    {% endblock %}
+</body>

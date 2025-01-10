@@ -1,0 +1,143 @@
+{% load static %}
+{% block content %}
+<div id="table_result">
+    <div class="search-form" style="display: flex; justify-content: center;">
+        <label style="font-family: Astra; font-size: larger;">Заводской номер:</label>
+        <div>
+          <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="factory_number_claim" name="factory_number_claim">
+        </div>
+        <button id="search-button-claim" type="submit">Поиск</button>
+    </div>
+    <div id="result_message_claim" class="result-message" style="display: flex; justify-content: space-between;">
+        <p id="amount_claim" style="font-family: AstraBold; font-size: larger;"></p>
+        <p style="font-family: AstraItalic; font-size: large;">Информация о рекламациях техники</p>
+    </div>
+    <div>
+        <a href="/create/claim/">
+            <button class="different_button" style="width: 100%; margin-left: 0; font-size: 15px;">Добавить рекламацию</button>
+        </a>
+        <p style="width: 100%; background-color: rgba(255, 255, 255, 0.404); height: 5px; margin: 0 auto;"></p>
+    </div>
+    <div style="overflow-x: auto; max-width: 100%; max-height: 100%; background-color: rgba(0, 0, 0, 0.3);">
+        <table>
+            <thead>
+                <tr id="table_titles_claim" style="background-color: rgb(98, 95, 89); color: white;">
+                    <th>Машина</th>
+                    <th>Сервисная компания</th>
+                    <th>Дата отказа</th>
+                    <th>Наработка, м/час</th>
+                    <th>Узел отказа</th>
+                    <th>Описание отказа</th>
+                    <th>Способ восстановления</th>
+                    <th>Запасные части</th>
+                    <th>Дата восстановления</th>
+                    <th>Время простоя</th>
+                </tr>
+            </thead>
+            <tbody id="table_data_claim">
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    const claim_api = new WebSocket("ws://localhost:9090/api/claim/");
+    let claimWaitingOn = false;
+    let claimMemoryInput = ' '
+
+    claim_api.onmessage = function(e) {
+        // console.log('WebSocket message received:', e.data);
+        const machineSerialNumber = document.querySelector('#factory_number_claim');
+        try{
+            const responseData = JSON.parse(e.data)
+            if (responseData.error == 1) {
+                machineSerialNumber.style.backgroundColor = 'rgb(33, 61, 105)';
+                setTimeout(() => {
+                    machineSerialNumber.style.backgroundColor = 'white';
+                }, 400);
+            } else if (responseData.error == 3) {
+                console.log(responseData)
+                claimWaitingOn = false;
+                machineSerialNumber.style.backgroundColor = 'red';
+                setTimeout(() => {
+                    machineSerialNumber.style.backgroundColor = 'white';
+                }, 400);
+            } else {
+                document.querySelector('#amount_claim').textContent = `Результат поиска: ${responseData.claim_info.length}`
+                const tableResult = document.querySelector('#result_message_claim');
+                const tableTitles = document.querySelector('#table_titles_claim');
+                const tableData = document.querySelector('#table_data_claim')
+                tableResult.style.color = 'black'
+                tableData.style.backgroundColor = 'rgb(202, 200, 191)'
+                tableData.style.color = 'black'
+                tableTitles.style.backgroundColor = 'rgb(98, 95, 89)'
+                let html = ``
+                responseData.claim_info.forEach(object => {
+                    html += `<tr id="claim_${object.id}" style="background-color: rgb(234, 229, 216); transition: all 1s;"></tr>`
+                })
+                document.querySelector('#table_data_claim').innerHTML = html;
+                responseData.claim_info.forEach(object =>{
+                    let html = ``
+                    responseData.fields.forEach(field => {
+                        if(object.hasOwnProperty(field)) {
+                            if (object[field].hasOwnProperty('name')) {
+                                html += `<td> <a style="text-decoration: none;" href="/description/?last_page=${window.location.href}&table_title=${123}&name=${object[field]['name']}&description=${object[field]['description']}" class="clue" style="text-decoration: underline"; data-clue="${object[field]['description']}" target="_blank"> ${object[field]['name']} </a> </td>`
+                            } else {
+                                html += `<td>${object[field]}</td>`
+                            }
+                        }
+                        document.querySelector(`#claim_${object.id}`).innerHTML = html;
+                    })
+                });
+            }
+            claimWaitingOn = false;
+            
+        } catch (e) {
+           console.error('Ошибка при парсинге JSON', e)
+        }
+    };
+
+    document.querySelector('#search-button-claim').onclick = function(e) {
+        const machineSerialNumber = document.querySelector('#factory_number_claim').value;
+        if (machineSerialNumber != claimMemoryInput) {            
+            claimWaitingOn = true;
+            waiting_answer_claim();
+            const requestData = {
+                serial_number: machineSerialNumber,
+                api_key: userid
+            };
+            claimMemoryInput = machineSerialNumber;
+            claim_api.send(JSON.stringify(requestData));
+        }
+    };
+
+    function waiting_answer_claim() {
+        const machineSerialNumber = document.querySelector('#factory_number_claim');
+        machineSerialNumber.style.border = 'solid 2px rgb(33, 61, 105)'
+        setTimeout(() => {
+            machineSerialNumber.style.border = 'solid 2px white';
+        }, 1000);
+        if (claimWaitingOn == true) {
+             console.log('waiting...');
+            setTimeout(() => {
+                waiting_answer_claim(claimWaitingOn);
+            }, 1500);
+        }
+    }
+
+    claim_api.onopen = () => {
+        console.log('WebSocket connection opened');
+    };
+
+    claim_api.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    claim_api.onclose = (event) => {
+        if (event.wasClean) {
+            console.log(`WebSocket connection closed cleanly, code=${event.code}`);
+        } else {
+            console.error('WebSocket connection died');
+        }
+    };
+</script>
+{% endblock %}

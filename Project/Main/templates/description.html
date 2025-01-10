@@ -1,0 +1,31 @@
+{% extends 'flatpages/default.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container full-screen">
+    <div class="header" style="margin: 0 auto; margin-bottom: 50px; max-width: 70%;">
+        <div class="logo" style="margin: 10px;">
+            <img style="width: 120px;" src="/static/materials/Logotype.svg">
+        </div>
+        <div>
+            <a class="contact" href="https://t.me/+78352201209" style="font-family: AstraBold;">+7 (835) 220 12 09</a>
+        </div>
+        <div style="margin: 10px;">
+            {% if user.is_authenticated %}
+                <a class="auth" href="/accounts/profile" style="font-family: AstraBold;"> {{ user.first_name }} {{ user.last_name }} </a>
+            {% else %}
+                <a class="auth" href="/accounts/login/" style="padding: 10px 20px;">Вход</a>
+            {% endif %}
+        </div>
+    </div>
+    <div style="width: 80%; margin: 0 auto">
+        <a style="font-size: 20px;" href="{{ data.last_page }}">
+            <button>НАЗАД</button>
+        </a>
+        <div style="display: flex; flex-direction: column; justify-content: space-between;">
+            <p style="font-size: 20px; margin: 50px auto;">{{ data.name }}</p>
+            <p style="font-size: 25px; margin: 0 auto;">{{ data.description }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

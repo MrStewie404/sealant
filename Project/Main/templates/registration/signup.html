@@ -1,0 +1,43 @@
+{% extends "flatpages/default.html" %}
+{% load i18n %}
+
+{% load static %}
+
+{% block content %}
+
+<form class="window" method="post">
+{% csrf_token %}
+<div style="display: flex; justify-content: center;">
+    <p style="font-weight:bolder; color: red;">* Ваш пароль должен быть не меньше 8 символов</p>
+</div>
+<fieldset>
+        {% csrf_token %}
+        Имя
+        <div>
+            <input type="username" name="username">
+        </div>
+        Пароль
+        <div>
+            <input type="password" name="password1">
+        </div>
+        Подтвердите пароль
+        <div>
+            <input type="password" name="password2">
+        </div>
+    </fieldset>
+
+    {% if form.errors %}
+        {% for field in form %}
+            {% for error in filed.errors %}
+            <div>
+                <p>{{ error|escape }}</p>
+            </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+    <input class="loginButton" type="submit" value="Sing up">
+
+</form>
+
+{% endblock %}

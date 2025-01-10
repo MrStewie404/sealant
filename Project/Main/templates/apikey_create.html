@@ -1,0 +1,26 @@
+{% extends 'flatpages/default.html' %}
+
+{% load static %}
+
+{% block content %}
+<form method="post">
+    <fieldset class="full-screen" style="display: flex; flex-direction: column; margin-top: -60px; border: none;">
+        <p style="font-family: AstraBoldItalic; font-size: 70px; text-align: center; margin-top: -150px; color: rgb(211, 206, 191);">
+            Создание ключа
+        </p>
+        <fieldset style="display: flex; flex-direction: column; justify-content: space-between; max-width: 300px; width: 50%; padding: 20px 30px; border: none; background-color: rgb(33, 61, 105);">
+            {% csrf_token %}
+            <div style="font-family: AstraBold; color: white; font-size: 20px; ">
+                Название <input type="name" name="name" style="width: 100%; height: 20px; padding-right: 0;">
+            </div>
+            <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                Описание предназначения <input type="description" name="description" style="width: 100%; height: 20px; padding-right: 0;">
+            </div>
+            <div style="font-family: AstraBold; color: white; font-size: 20px;">
+                Секретное слово <input type="secret_word" name="secret_word" style="width: 100%; height: 20px; padding-right: 0;">
+            </div>
+            <button style="font-family: AstraBold; margin: 20px 0 0 0; font-size: 15px;" type="submit">Создать</button>
+        </fieldset>
+    </fieldset>
+</form>
+{% endblock %}
