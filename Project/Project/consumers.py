@@ -1,3 +1,4 @@
+from django.db.models import Q
 import os
 import django
 
@@ -11,6 +12,16 @@ from django.contrib.auth.models import User
 from Main.models import *
 from datetime import date
 
+@sync_to_async
+def check_key(api_key):
+    api_keys = ApiKey.objects.all()
+    api_keys = [api_key.key for api_key in api_keys]
+    try_generate = ApiKey().generate_key(api_key)
+
+    if str(api_key) in api_keys or try_generate in api_keys:
+        return True
+    
+    return False
 
 class APIMachines(AsyncWebsocketConsumer):
     async def connect(self):
@@ -19,15 +30,22 @@ class APIMachines(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         try:
             data = json.loads(text_data)
-            serial_number = data.get('serial_number')
-            
+            query = data.get('query')
+            try:
+                filter_by = (data.get('filterBy'))[0].split('__')
+                filter_by = filter_by[0] if filter_by[1] != "Desc" else "-" + filter_by[0]
+            except:
+                filter_by = None
+
             if data.get('api_key'):
-                if await self.check_key(data.get('api_key')):
-                    response_data = await self.get_machine_data(serial_number, 17)
+                if await check_key(data.get('api_key')):
+                    response_data = await self.get_machine_data(query, filter_by, 17)
+                elif query != None:
+                    response_data = await self.get_machine_data(query, filter_by, 10)
                 else:
-                    response_data = await self.get_machine_data(serial_number, 10)
+                    await self.send(text_data = json.dumps({'error': 0, 'description': 'Неверный JSON формат'}, ensure_ascii=False))
             else:
-                response_data = await self.get_machine_data(serial_number, 10)
+                response_data = await self.get_machine_data(query, filter_by, 10)
 
             await self.send(text_data = json.dumps(response_data, ensure_ascii=False))
 
@@ -40,8 +58,8 @@ class APIMachines(AsyncWebsocketConsumer):
     async def disconnect(self, _):
         pass
 
-    async def get_machine_data(self, serial_number, fields_len):
-        machine_info = await self.machine(serial_number, fields_len)
+    async def get_machine_data(self, query, filter_by, fields_len):
+        machine_info = await self.machine(query, filter_by, fields_len)
         if machine_info != None:
             return {
                 'fields':['serial_number', 'equipment_model', 
@@ -57,14 +75,18 @@ class APIMachines(AsyncWebsocketConsumer):
                 'machine_info': machine_info
             }
         else:
-            return {'error': 2, 'description': f'Машина с номером {serial_number} не найдена'}
+            return {'error': 2, 'description': f'Машина с номером {query} не найдена'}
 
     @sync_to_async
-    def machine(self, serial_number, fields_len):
-        if serial_number != '':
-            machines = [Machine.objects.get(serial_number=serial_number)]
+    def machine(self, query, filter_by, fields_len):
+        if query != None:
+            filter_kwargs = {attribute: value for attribute, value in [query]}
+            machines = Machine.objects.filter(**filter_kwargs)
         else:
-            machines = Machine.objects.all()
+            if filter_by != None:
+                machines = Machine.objects.all().order_by(filter_by)
+            else:
+                machines = Machine.objects.all()
 
         data = []
         for machine in machines:
@@ -90,17 +112,6 @@ class APIMachines(AsyncWebsocketConsumer):
             }.items())[:fields_len+1]))
         return data
     
-    @sync_to_async
-    def check_key(self, api_key):
-        api_keys = ApiKey.objects.all()
-        api_keys = [api_key.key for api_key in api_keys]
-        try_generate = ApiKey().generate_key(api_key)
-
-        if str(api_key) in api_keys or try_generate in api_keys:
-            return True
-        
-        return False
-    
 
 class APIMaintenance(AsyncWebsocketConsumer):
     async def connect(self):
@@ -109,11 +120,18 @@ class APIMaintenance(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         try:
             data = json.loads(text_data)
-            serial_number = data.get('serial_number')
-            
+            query = data.get('query')
+            try:
+                filter_by = (data.get('filterBy'))[0].split('__')
+                filter_by = filter_by[0] if filter_by[1] != "Desc" else "-" + filter_by[0]
+            except:
+                filter_by = None
+
+            print(query, filter_by)
+
             if data.get('api_key'):
-                if await self.check_key(data.get('api_key')):
-                    response_data = await self.get_maintenances_data(serial_number)
+                if await check_key(data.get('api_key')):
+                    response_data = await self.get_maintenances_data(query, filter_by)
                 else:
                     response_data = {}
             else:
@@ -130,8 +148,8 @@ class APIMaintenance(AsyncWebsocketConsumer):
     async def disconnect(self, _):
         pass
 
-    async def get_maintenances_data(self, serial_number):
-        maintenances_info = await self.maintenances(serial_number)
+    async def get_maintenances_data(self, query, filter_by):
+        maintenances_info = await self.maintenances(query, filter_by)
         if maintenances_info != None:
             return {
                 'fields':['serial_number', 
@@ -142,16 +160,19 @@ class APIMaintenance(AsyncWebsocketConsumer):
                 'maintenance_info': maintenances_info
             }
         else:
-            return {'error': 2, 'description': f'Машина с номером {serial_number} не найдена'}
+            return {'error': 2, 'description': f'Машина с номером {query} не найдена'}
 
     @sync_to_async
-    def maintenances(self, serial_number):
-        if serial_number != '':
-            machine = Machine.objects.get(serial_number=serial_number)
-            maintenances = [Maintenance.objects.filter(machine=machine)]
+    def maintenances(self, query, filter_by):
+        maintenance = None
+        if query != None:
+            filter_kwargs = {attribute: value for attribute, value in [query]}
+            maintenances = Maintenance.objects.filter(**filter_kwargs)
         else:
-            maintenances = Maintenance.objects.all()
-
+            if filter_by != None:
+                maintenances = Maintenance.objects.all().order_by(filter_by)
+            else:
+                maintenances = Maintenance.objects.all()
 
         data = []
         for maintenance in maintenances:
@@ -167,17 +188,6 @@ class APIMaintenance(AsyncWebsocketConsumer):
             })
         return data
     
-    @sync_to_async
-    def check_key(self, api_key):
-        api_keys = ApiKey.objects.all()
-        api_keys = [api_key.key for api_key in api_keys]
-        try_generate = ApiKey().generate_key(api_key)
-
-        if str(api_key) in api_keys or try_generate in api_keys:
-            return True
-        
-        return False
-    
 class APIClaim(AsyncWebsocketConsumer):
     async def connect(self):
         await self.accept()
@@ -185,11 +195,16 @@ class APIClaim(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         try:
             data = json.loads(text_data)
-            serial_number = data.get('serial_number')
+            query = data.get('query')
+            try:
+                filter_by = (data.get('filterBy'))[0].split('__')
+                filter_by = filter_by[0] if filter_by[1] != "Desc" else "-" + filter_by[0]
+            except:
+                filter_by = None
             
             if data.get('api_key'):
-                if await self.check_key(data.get('api_key')):
-                    response_data = await self.get_claims_data(serial_number)
+                if await check_key(data.get('api_key')):
+                    response_data = await self.get_claims_data(query, filter_by)
                 else:
                     response_data = {}
             
@@ -207,8 +222,8 @@ class APIClaim(AsyncWebsocketConsumer):
     async def disconnect(self, _):
         pass
 
-    async def get_claims_data(self, serial_number):
-        claims_info = await self.claims(serial_number)
+    async def get_claims_data(self, query, filter_by):
+        claims_info = await self.claims(query, filter_by)
         if claims_info != None:
             return {
                 'fields':['serial_number', 
@@ -221,15 +236,19 @@ class APIClaim(AsyncWebsocketConsumer):
                 'claim_info': claims_info
             }
         else:
-            return {'error': 2, 'description': f'Машина с номером {serial_number} не найдена'}
+            return {'error': 2, 'description': f'Машина с номером {query} не найдена'}
 
     @sync_to_async
-    def claims(self, serial_number):
-        if serial_number != '':
-            machine = Machine.objects.get(serial_number=serial_number)
-            claims = [Claim.objects.filter(machine=machine)]
+    def claims(self, query, filter_by):
+        claims = None
+        if query != None:
+            filter_kwargs = {attribute: value for attribute, value in [query]}
+            claims = Claim.objects.filter(**filter_kwargs)
         else:
-            claims = Claim.objects.all()
+            if filter_by != None:
+                claims = Claim.objects.all().order_by(filter_by)
+            else:
+                claims = Claim.objects.all()
 
         data = []
         for claim in claims:
@@ -246,16 +265,5 @@ class APIClaim(AsyncWebsocketConsumer):
                 'recovery_date': str(claim.recovery_date),
                 'downtime': claim.downtime
             })
-        print(data[0])
-        return data
-    
-    @sync_to_async
-    def check_key(self, api_key):
-        api_keys = ApiKey.objects.all()
-        api_keys = [api_key.key for api_key in api_keys]
-        try_generate = ApiKey().generate_key(api_key)
 
-        if str(api_key) in api_keys or try_generate in api_keys:
-            return True
-        
-        return False
+        return data

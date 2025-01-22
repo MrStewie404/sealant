@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -5,12 +6,13 @@ from django.contrib.auth import logout
 from django.conf import settings
 from .models import *
 from .forms import *
+from .other import group_required
 import os
-
 
 def main(request):
     return render(request, 'main.html', {})
 
+@login_required
 def machine(request):
     machine = Machine.objects.all()
     context = {
@@ -18,6 +20,8 @@ def machine(request):
     }
     return render(request, 'machine.html', context)
 
+@login_required
+@group_required(['Manager'])
 def create_machine(request):
     if request.method == 'POST':
         form = MachineCreateForm(request.POST)
@@ -51,6 +55,7 @@ def create_machine(request):
     }
     return render(request, 'machine_create.html', context)
 
+@login_required
 def maintenance(request):
     maintenance = Maintenance.objects.all()
     context = {
@@ -58,6 +63,8 @@ def maintenance(request):
     }
     return render(request, 'maintenance.html', context)
 
+@login_required
+@group_required(['Manager', 'Client', 'Service organization'])
 def create_maintenance(request):
     if request.method == 'POST':
         form = MaintenanceCreateForm(request.POST)
@@ -82,6 +89,7 @@ def create_maintenance(request):
     }
     return render(request, 'maintenance_create.html', context)
 
+@login_required
 def сlaim(request):
     сlaimed = Claim.objects.all()
     context = {
@@ -89,6 +97,8 @@ def сlaim(request):
     }
     return render(request, 'сlaim.html', context)
 
+@login_required
+@group_required(['Service organization', 'Manager'])
 def create_claim(request):
     if request.method == 'POST':
         form = ClaimCreateForm(request.POST)
@@ -122,6 +132,7 @@ def picture_view(filename):
         image_data = f.read()
     return HttpResponse(image_data, content_type='image')
 
+@login_required
 def profile_logout(request):
     logout(request)
     return redirect('/accounts/login/')
@@ -132,6 +143,7 @@ def favicon_view():
         image_data = f.read()
     return HttpResponse(image_data, content_type='image')
 
+@login_required
 def profile_redirect(request):
     try:
         api_keys = ApiKey.objects.filter(user=request.user)
@@ -145,6 +157,7 @@ def profile_redirect(request):
     }
     return render(request, 'profile.html', context=context)
 
+@login_required
 def profile_table(request, table_name):
     print(request)
     try:
@@ -159,6 +172,7 @@ def profile_table(request, table_name):
     }
     return render(request, 'profile.html', context=context)
 
+@login_required
 def apikey_create(request):
     if request.method == 'POST':
         form = ApiKeyCreateForm(request.POST)
@@ -174,6 +188,7 @@ def apiket_delete(request, pk):
     ApiKey.objects.get(id=pk).delete()
     return redirect(profile_redirect)
 
+@login_required
 def show_description(request):
     last_page = request.GET.get('last_page')
     table_title = request.GET.get('table_title')

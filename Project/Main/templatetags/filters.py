@@ -15,3 +15,7 @@ def string_cutter(value, length):
     if len(value) <= length:
         return value
     return format_html("{}...", value[:length])
+
+@register.filter(name='in_group')
+def in_any_group(group, groups_to_check):
+    return any(g in group for g in groups_to_check.split(','))

@@ -1,34 +1,85 @@
 {% load static %}
+{% load filters %}
 {% block content %}
 <div id="table_result">
-    <div class="search-form" style="display: flex; justify-content: center;">
-        <label style="font-family: Astra; font-size: larger;">Заводской номер:</label>
-        <div>
-          <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="factory_number_maintenance" name="factory_number_maintenance">
-        </div>
-        <button id="search-button-maintenance" type="submit">Поиск</button>
-    </div>
     <div id="result_message_maintenance" class="result-message" style="display: flex; justify-content: space-between;">
         <p id="amount_maintenance" style="font-family: AstraBold; font-size: larger;"></p>
-        <p style="font-family: AstraItalic; font-size: large;">Информация о техническом осмотре техники</p>
     </div>
     <div>
-        <a href="/create/maintenance/">
-            <button class="different_button" style="width: 100%; margin-left: 0; font-size: 15px;">Добавить технический осмотр</button>
-        </a>
+        <div style="display: flex; flex-direction: row; width: 100%; justify-content: space-between;">
+            <div>
+                {% for group in request.user.groups.values_list %}
+                    {% if group|in_group:"Manager,Client,Service organization" %}
+                        <a href="/create/maintenance/">
+                            <button class="different_button" style="width: 100%; margin-left: 0; font-size: 15px; ">Добавить технический осмотр</button>
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <button id="search-button-maintenance" type="submit">Поиск</button>
+        </div>
         <p style="width: 100%; background-color: rgba(255, 255, 255, 0.404); height: 5px; margin: 0 auto;"></p>
     </div>
     <div style="overflow-x: auto; max-width: 100%; max-height: 100%; background-color: rgba(0, 0, 0, 0.3);">
         <table>
             <thead>
                 <tr id="table_titles_maintenance" style="background-color: rgb(98, 95, 89); color: white;">
-                    <th>Машина (Зав. №)</th>
-                    <th>Вид ТО</th>
-                    <th>Дата проведения ТО</th>
-                    <th>Наработка, м/час</th>
-                    <th>№ заказ-наряда</th>
-                    <th>Дата заказ-нарядов</th>
-                    <th>Сервисная компания</th>
+                    <th>
+                        Машина (Зав. №)
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="machine__serial_number">
+                        <div style="display: flex; width: 50%;">
+                            <button id="machine__Asc" class="sort-button" >🔼</button>
+                            <button id="machine__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Вид ТО
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="maintenance_type__name">
+                        <div style="display: flex; width: 50%;">
+                            <button id="maintenance_type__Asc" class="sort-button" >🔼</button>
+                            <button id="maintenance_type__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Дата проведения ТО
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="maintenance_date">
+                        <div style="display: flex; width: 50%;">
+                            <button id="maintenance_date__Asc" class="sort-button" >🔼</button>
+                            <button id="maintenance_date__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Наработка, м/час
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="hours">
+                        <div style="display: flex; width: 50%;">
+                            <button id="hours__Asc" class="sort-button" >🔼</button>
+                            <button id="hours__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        № заказ-наряда
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="order_number">
+                        <div style="display: flex; width: 50%;">
+                            <button id="order_number__Asc" class="sort-button" >🔼</button>
+                            <button id="order_number__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Дата заказ-нарядов
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="order_date">
+                        <div style="display: flex; width: 50%;">
+                            <button id="order_date__Asc" class="sort-button" >🔼</button>
+                            <button id="order_date__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Сервисная компания
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="service_company__name">
+                        <div style="display: flex; width: 50%;">
+                            <button id="service_company__Asc" class="sort-button" >🔼</button>
+                            <button id="service_company__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
                 </tr>
             </thead>
             <tbody id="table_data_maintenance">
@@ -42,23 +93,14 @@
     let maintenanceMemoryInput = ' '
 
     maintenance_api.onmessage = function(e) {
-        // console.log('WebSocket message received:', e.data);
-        const machineSerialNumber = document.querySelector('#factory_number_maintenance');
+        const search_result_maintenance = document.querySelector('#amount_maintenance')
+
         try{
-            const responseData = JSON.parse(e.data)
-            if (responseData.error == 1) {
-                machineSerialNumber.style.backgroundColor = 'rgb(33, 61, 105)';
-                setTimeout(() => {
-                    machineSerialNumber.style.backgroundColor = 'white';
-                }, 400);
-            } else if (responseData.error == 3) {
-                maintenanceWaitingOn = false;
-                machineSerialNumber.style.backgroundColor = 'red';
-                setTimeout(() => {
-                    machineSerialNumber.style.backgroundColor = 'white';
-                }, 400);
+            const responseData = JSON.parse(e.data);
+            if (responseData.error) {
+                search_result_maintenance.textContent = `${responseData.description}`
             } else {
-                document.querySelector('#amount_maintenance').textContent = `Результат поиска: ${responseData.maintenance_info.length}`
+                search_result_maintenance.textContent = `Результат поиска: ${responseData.maintenance_info.length}`
                 const tableResult = document.querySelector('#result_message_maintenance');
                 const tableTitles = document.querySelector('#table_titles_maintenance');
                 const tableData = document.querySelector('#table_data_maintenance')
@@ -86,25 +128,74 @@
                 });
             }
             maintenanceWaitingOn = false;
-            
+
         } catch (e) {
-           console.error('Ошибка при парсинге JSON', e)
+            console.error('Ошибка при парсинге JSON', e)
         }
     };
 
-    document.querySelector('#search-button-maintenance').onclick = function(e) {
-        const maintenanceSerialNumber = document.querySelector('#factory_number_maintenance').value;
-        if (maintenanceSerialNumber != maintenanceMemoryInput) {            
-            maintenanceWaitingOn = true;
-            waiting_answer_maintenance();
-            const requestData = {
-                serial_number: maintenanceSerialNumber,
-                api_key: userid
-            };
-            maintenanceMemoryInput = maintenanceSerialNumber;
-            maintenance_api.send(JSON.stringify(requestData));
+    document.addEventListener('DOMContentLoaded', function() {
+        const tableTitles = document.getElementById('table_titles_maintenance');
+        const searchButton = document.querySelector('#search-button-maintenance');
+
+        if (tableTitles) {
+            const inputs = tableTitles.querySelectorAll('input.search-input');
+            const sortButtons = tableTitles.querySelectorAll('button.sort-button');
+            let activeInput = null;
+
+            inputs.forEach(currentInput => {
+                currentInput.addEventListener('input', function() {
+                    inputs.forEach(input => {
+                        if(input !== currentInput) {
+                            input.value = '';
+                        }
+                    });
+                    activeInput = currentInput;
+                    sendRequestToServer();
+                });
+            });
+
+            sortButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    sortButtons.forEach(btn => {
+                        if (btn !== button) {
+                            btn.classList.remove('active')
+                        }
+                    });
+                    button.classList.toggle('active');
+                    sendRequestToServer();
+                });
+            });
+
+            searchButton.onclick = function() {
+                 sendRequestToServer();
+             };
+
+            function sendRequestToServer() {
+                const activeSortButtons = [];
+                sortButtons.forEach(button => {
+                    if (button.classList.contains('active')) {
+                        activeSortButtons.push(button.id);
+                    }
+                });
+                let requestData = {
+                    api_key: userid,
+                    filterBy: activeSortButtons,
+                };
+                if(activeInput && activeInput.value !== '') {
+                    requestData.query = [
+                        activeInput.id, activeInput.value
+                    ]
+                    requestData.filterBy = [
+                        activeInput.id,
+                        ...activeSortButtons
+                    ]
+                }
+                console.log(requestData)
+                maintenance_api.send(JSON.stringify(requestData));
+            }
         }
-    };
+    });
 
     function waiting_answer_maintenance() {
         const machineSerialNumber = document.querySelector('#factory_number_maintenance');

@@ -1,37 +1,109 @@
 {% load static %}
+{% load filters %}
 {% block content %}
 <div id="table_result">
-    <div class="search-form" style="display: flex; justify-content: center;">
-        <label style="font-family: Astra; font-size: larger;">Заводской номер:</label>
-        <div>
-          <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="factory_number_claim" name="factory_number_claim">
-        </div>
-        <button id="search-button-claim" type="submit">Поиск</button>
-    </div>
     <div id="result_message_claim" class="result-message" style="display: flex; justify-content: space-between;">
         <p id="amount_claim" style="font-family: AstraBold; font-size: larger;"></p>
-        <p style="font-family: AstraItalic; font-size: large;">Информация о рекламациях техники</p>
     </div>
     <div>
-        <a href="/create/claim/">
-            <button class="different_button" style="width: 100%; margin-left: 0; font-size: 15px;">Добавить рекламацию</button>
-        </a>
+        <div style="display: flex; flex-direction: row; width: 100%; justify-content: space-between;">
+            <div>
+                {% for group in request.user.groups.values_list %}
+                    {% if group|in_group:"Manager,Service organization" %}
+                        <a href="/create/claim/">
+                            <button class="different_button" style="width: 100%; margin-left: 0; font-size: 15px;">Добавить рекламацию</button>
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <button id="search-button-claim" type="submit">Поиск</button>
+        </div>
         <p style="width: 100%; background-color: rgba(255, 255, 255, 0.404); height: 5px; margin: 0 auto;"></p>
     </div>
     <div style="overflow-x: auto; max-width: 100%; max-height: 100%; background-color: rgba(0, 0, 0, 0.3);">
         <table>
             <thead>
                 <tr id="table_titles_claim" style="background-color: rgb(98, 95, 89); color: white;">
-                    <th>Машина</th>
-                    <th>Сервисная компания</th>
-                    <th>Дата отказа</th>
-                    <th>Наработка, м/час</th>
-                    <th>Узел отказа</th>
-                    <th>Описание отказа</th>
-                    <th>Способ восстановления</th>
-                    <th>Запасные части</th>
-                    <th>Дата восстановления</th>
-                    <th>Время простоя</th>
+                    <th>
+                        Машина
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="machine__serial_number">
+                        <div style="display: flex; width: 50%;">
+                            <button id="machine__serial_number__Asc" class="sort-button" >🔼</button>
+                            <button id="machine__serial_number__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Сервисная компания
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="service_company__name">
+                        <div style="display: flex; width: 50%;">
+                            <button id="service_company__name__Asc" class="sort-button" >🔼</button>
+                            <button id="service_company__name__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Дата отказа
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="date" id="failure_date">
+                        <div style="display: flex; width: 50%;">
+                            <button id="failure_date__Asc" class="sort-button" >🔼</button>
+                            <button id="failure_date__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Наработка, м/час
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="operating_hours">
+                        <div style="display: flex; width: 50%;">
+                            <button id="operating_hours__Asc" class="sort-button" >🔼</button>
+                            <button id="operating_hours__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Узел отказа
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="failure_node__name">
+                         <div style="display: flex; width: 50%;">
+                            <button id="failure_node__name__Asc" class="sort-button" >🔼</button>
+                            <button id="failure_node__name__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Описание отказа
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="failure_description">
+                        <div style="display: flex; width: 50%;">
+                            <button id="failure_description__Asc" class="sort-button" >🔼</button>
+                            <button id="failure_description__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Способ восстановления
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="recovery_method__name">
+                        <div style="display: flex; width: 50%;">
+                            <button id="recovery_method__name__Asc" class="sort-button" >🔼</button>
+                            <button id="recovery_method__name__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Запасные части
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="used_spare_parts">
+                         <div style="display: flex; width: 50%;">
+                            <button id="used_spare_parts__Asc" class="sort-button" >🔼</button>
+                            <button id="used_spare_parts__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Дата восстановления
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="date" id="recovery_date">
+                         <div style="display: flex; width: 50%;">
+                            <button id="recovery_date__Asc" class="sort-button" >🔼</button>
+                            <button id="recovery_date__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
+                    <th>
+                        Время простоя
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="downtime">
+                        <div style="display: flex; width: 50%;">
+                            <button id="downtime__Asc" class="sort-button" >🔼</button>
+                            <button id="downtime__Desc" class="sort-button" >🔽</button>
+                        </div>
+                    </th>
                 </tr>
             </thead>
             <tbody id="table_data_claim">
@@ -45,24 +117,15 @@
     let claimMemoryInput = ' '
 
     claim_api.onmessage = function(e) {
-        // console.log('WebSocket message received:', e.data);
-        const machineSerialNumber = document.querySelector('#factory_number_claim');
+        const search_result_claim = document.querySelector('#amount_claim')
+
         try{
-            const responseData = JSON.parse(e.data)
-            if (responseData.error == 1) {
-                machineSerialNumber.style.backgroundColor = 'rgb(33, 61, 105)';
-                setTimeout(() => {
-                    machineSerialNumber.style.backgroundColor = 'white';
-                }, 400);
-            } else if (responseData.error == 3) {
-                console.log(responseData)
-                claimWaitingOn = false;
-                machineSerialNumber.style.backgroundColor = 'red';
-                setTimeout(() => {
-                    machineSerialNumber.style.backgroundColor = 'white';
-                }, 400);
+            const responseData = JSON.parse(e.data);
+            if (responseData.error) {
+                search_result_claim.textContent = `${responseData.description}`
             } else {
                 document.querySelector('#amount_claim').textContent = `Результат поиска: ${responseData.claim_info.length}`
+                search_result_claim.textContent = `Результат поиска: ${responseData.claim_info.length}`
                 const tableResult = document.querySelector('#result_message_claim');
                 const tableTitles = document.querySelector('#table_titles_claim');
                 const tableData = document.querySelector('#table_data_claim')
@@ -96,33 +159,69 @@
         }
     };
 
-    document.querySelector('#search-button-claim').onclick = function(e) {
-        const machineSerialNumber = document.querySelector('#factory_number_claim').value;
-        if (machineSerialNumber != claimMemoryInput) {            
-            claimWaitingOn = true;
-            waiting_answer_claim();
-            const requestData = {
-                serial_number: machineSerialNumber,
-                api_key: userid
-            };
-            claimMemoryInput = machineSerialNumber;
-            claim_api.send(JSON.stringify(requestData));
-        }
-    };
 
-    function waiting_answer_claim() {
-        const machineSerialNumber = document.querySelector('#factory_number_claim');
-        machineSerialNumber.style.border = 'solid 2px rgb(33, 61, 105)'
-        setTimeout(() => {
-            machineSerialNumber.style.border = 'solid 2px white';
-        }, 1000);
-        if (claimWaitingOn == true) {
-             console.log('waiting...');
-            setTimeout(() => {
-                waiting_answer_claim(claimWaitingOn);
-            }, 1500);
+    document.addEventListener('DOMContentLoaded', function() {
+        const tableTitles = document.getElementById('table_titles_claim');
+        const searchButton = document.querySelector('#search-button-claim');
+
+        if (tableTitles) {
+            const inputs = tableTitles.querySelectorAll('input.search-input');
+            const sortButtons = tableTitles.querySelectorAll('button.sort-button');
+            let activeInput = null;
+
+            inputs.forEach(currentInput => {
+                currentInput.addEventListener('input', function() {
+                    inputs.forEach(input => {
+                        if (input !== currentInput) {
+                            input.value = '';
+                        }
+                    });
+                      activeInput = currentInput;
+                    sendRequestToServer();
+                });
+            });
+            
+           sortButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    sortButtons.forEach(btn => {
+                        if (btn !== button) {
+                            btn.classList.remove('active')
+                        }
+                    });
+                    button.classList.toggle('active');
+                    sendRequestToServer();
+                });
+            });
+            
+            searchButton.onclick = function() {
+                 sendRequestToServer();
+             };
+
+
+            function sendRequestToServer() {
+                const activeSortButtons = [];
+                sortButtons.forEach(button => {
+                    if (button.classList.contains('active')) {
+                        activeSortButtons.push(button.id);
+                    }
+                });
+                 let requestData = {
+                        api_key: userid,
+                        filterBy: activeSortButtons,
+                    };
+                 if(activeInput && activeInput.value !== '') {
+                     requestData.query = [
+                        activeInput.id, activeInput.value
+                        ]
+                     requestData.filterBy = [
+                        activeInput.id,
+                        ...activeSortButtons
+                        ]
+                 }
+                claim_api.send(JSON.stringify(requestData));
+            }
         }
-    }
+    });
 
     claim_api.onopen = () => {
         console.log('WebSocket connection opened');

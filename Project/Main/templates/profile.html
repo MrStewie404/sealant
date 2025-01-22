@@ -4,16 +4,7 @@
 
 {% block content %}
 {% if user.is_authenticated %}
-<style>
-    .table-container {
-        display: none;
-        margin: 10px auto;
-        max-width: 80%;
-    }
-    .table-container.active{
-        display: block;
-    }
-</style>
+
 {{ request.user.id|json_script:"json-userid" }}
 <fieldset class="full-screen" style="border: none;">
     <div class="background_color_blue" style="padding: 5px 20px; max-width: 450px; margin: 0 auto;">

@@ -1,21 +1,21 @@
 {% load static %}
+{% load filters %}
 {% block content %}
 <div id="table_result">
-    <!-- <div class="search-form" style="display: flex; justify-content: center;">
-        <label style="font-family: Astra; font-size: larger;">Заводской номер:</label>
-        <div>
-          <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="factory_number" name="factory_number">
-        </div>
-        <button id="search-button" type="submit">Поиск</button>
-    </div> -->
     <div id="result_message" class="result-message" style="display: flex; justify-content: space-between;">
         <p id="amount_machine" style="font-family: AstraBold; font-size: larger; margin: 0;">&nbsp;</p>
     </div>
     <div>
         <div style="display: flex; flex-direction: row; width: 100%; justify-content: space-between;">
-            <a href="/create/machine/">
-                <button class="different_button" style="width: 100%; margin-left: 0; font-size: 15px;">Создать новую машину</button>
-            </a>
+            <div>
+                {% for group in request.user.groups.values_list %}
+                    {% if group|in_group:"Manager" %}
+                        <a href="/create/machine/">
+                            <button class="different_button" style="width: 100%; margin-left: 0; font-size: 15px;">Создать новую машину</button>
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
             <button id="search-button" type="submit">Поиск</button>
         </div>
         <p style="width: 100%; background-color: rgba(255, 255, 255, 0.404); height: 5px; margin: 0 auto;"></p>
@@ -23,74 +23,142 @@
     <div style="overflow-x: auto; max-width: 100%; max-height: 100%; background-color: rgba(0, 0, 0, 0.3);">
         <table>
             <thead>
-                <tr id="table_titles" style="background-color: rgb(98, 95, 89); color: white;">
+                <tr id="table_titles_machine" style="background-color: rgb(98, 95, 89); color: white;">
                     <th>
                         Зав. № машины
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="serial_number">
+                         <div style="display: flex; width: 50%;">
+                            <button id="serial_number__Asc" class="sort-button" >🔼</button>
+                            <button id="serial_number__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Модель техники
-                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="equipment_model">
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="equipment_model__name">
+                         <div style="display: flex; width: 50%;">
+                            <button id="equipment_model__name__Asc" class="sort-button" >🔼</button>
+                            <button id="equipment_model__name__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Модель двигателя
-                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="engine_model">
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="engine_model__name">
+                         <div style="display: flex; width: 50%;">
+                            <button id="engine_model__name__Asc" class="sort-button" >🔼</button>
+                            <button id="engine_model__name__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Зав. № двигателя
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="engine_serial_number">
+                        <div style="display: flex; width: 50%;">
+                            <button id="engine_serial_number__Asc" class="sort-button" >🔼</button>
+                            <button id="engine_serial_number__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Модель трансмиссии
-                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="transmission_model">
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="transmission_model__name">
+                         <div style="display: flex; width: 50%;">
+                            <button id="transmission_model__name__Asc" class="sort-button" >🔼</button>
+                            <button id="transmission_model__name__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Зав. № трансмиссии
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="transmission_serial_number">
+                         <div style="display: flex; width: 50%;">
+                            <button id="transmission_serial_number__Asc" class="sort-button" >🔼</button>
+                            <button id="transmission_serial_number__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Модель ведущего моста
-                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="drive_axle_model">
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="drive_axle_model__name">
+                        <div style="display: flex; width: 50%;">
+                            <button id="drive_axle_model__name__Asc" class="sort-button" >🔼</button>
+                            <button id="drive_axle_model__name__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Зав. № ведущего моста
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="drive_axle_serial_number">
+                        <div style="display: flex; width: 50%;">
+                            <button id="drive_axle_serial_number__Asc" class="sort-button" >🔼</button>
+                            <button id="drive_axle_serial_number__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                      <th>
                         Модель управляемого моста
-                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="steerable_axle_model">
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="steerable_axle_model__name">
+                         <div style="display: flex; width: 50%;">
+                            <button id="steerable_axle_model__name__Asc" class="sort-button" >🔼</button>
+                            <button id="steerable_axle_model__name__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Зав. № управляемого моста
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="steerable_axle_serial_number">
+                        <div style="display: flex; width: 50%;">
+                            <button id="steerable_axle_serial_number__Asc" class="sort-button" >🔼</button>
+                            <button id="steerable_axle_serial_number__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Договор поставки №, дата
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="supply_contract_number">
+                         <div style="display: flex; width: 50%;">
+                             <button id="supply_contract_number__Asc" class="sort-button" >🔼</button>
+                            <button id="supply_contract_number__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Дата отгрузки с завода
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="date" id="shipment_date">
+                        <div style="display: flex; width: 50%;">
+                            <button id="shipment_date__Asc" class="sort-button" >🔼</button>
+                           <button id="shipment_date__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Грузополучатель (конечный потребитель)
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="consignee">
+                        <div style="display: flex; width: 50%;">
+                           <button id="consignee__Asc" class="sort-button" >🔼</button>
+                            <button id="consignee__Desc" class="sort-button" >🔽</button>
+                        </div>
                     </th>
                     <th>
                         Адрес поставки (эксплуатации)
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="delivery_address">
+                       <div style="display: flex; width: 50%;">
+                           <button id="delivery_address__Asc" class="sort-button" >🔼</button>
+                           <button id="delivery_address__Desc" class="sort-button" >🔽</button>
+                       </div>
                     </th>
                      <th>
                         Комплектация (доп. опции)
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="configuration">
+                       <div style="display: flex; width: 50%;">
+                           <button id="configuration__Asc" class="sort-button" >🔼</button>
+                           <button id="configuration__Desc" class="sort-button" >🔽</button>
+                       </div>
                     </th>
                     <th>
                         Клиент
                         <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="client">
+                        <div style="display: flex; width: 50%;">
+                           <button id="client__Asc" class="sort-button" >🔼</button>
+                           <button id="client__Desc" class="sort-button" >🔽</button>
+                       </div>
                     </th>
                     <th>
                         Сервисная компания
-                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="service_company">
+                        <input class="search-input" style="border: solid white 2px; transition: all 1s;" type="text" id="service_company__name">
+                        <div style="display: flex; width: 50%;">
+                           <button id="service_company__name__Asc" class="sort-button" >🔼</button>
+                           <button id="service_company__name__Desc" class="sort-button" >🔽</button>
+                       </div>
                     </th>
                 </tr>
             </thead>
@@ -104,45 +172,17 @@
     let machinesWaitingOn = false;
     let machineMemoryInput = ' ';
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const tableTitles = document.getElementById('table_titles');
-
-        if (tableTitles) {
-            const inputs = tableTitles.querySelectorAll('input.search-input');
-
-            inputs.forEach(currentInput => {
-                currentInput.addEventListener('input', function() {
-                    inputs.forEach(input => {
-                    if (input !== currentInput) {
-                        input.value = '';
-                    }
-                    });
-                });
-            });
-        } else {
-            console.error("Элемент с id 'table_titles' не найден.");
-        }
-    });
-
     machines_api.onmessage = function(e) {
-        const machineSerialNumber = document.querySelector('#factory_number');
+        const search_result = document.querySelector('#amount_machine')
+
         try{
             const responseData = JSON.parse(e.data);
-            if (responseData.error == 1) {
-                machineSerialNumber.style.backgroundColor = 'rgb(33, 61, 105)';
-                setTimeout(() => {
-                    machineSerialNumber.style.backgroundColor = 'white';
-                }, 400);
-            } else if (responseData.error == 3) {
-                machinesWaitingOn = false;
-                machineSerialNumber.style.backgroundColor = 'red';
-                setTimeout(() => {
-                    machineSerialNumber.style.backgroundColor = 'white';
-                }, 400);
+            if (responseData.error) {
+                search_result.textContent = `${responseData.description}`
             } else {
-                document.querySelector('#amount_machine').textContent = `Результат поиска: ${responseData.machine_info.length}`
+                search_result.textContent = `Результат поиска: ${responseData.machine_info.length}`
                 const tableResult = document.querySelector('#result_message');
-                const tableTitles = document.querySelector('#table_titles');
+                const tableTitles = document.querySelector('#table_titles_machine');
                 const tableData = document.querySelector('#table_data');
                 tableResult.style.color = 'black';
                 tableData.style.backgroundColor = 'rgb(202, 200, 191)';
@@ -174,19 +214,65 @@
         }
     };
 
-    document.querySelector('#search-button').onclick = function(e) {
-        const machineSerialNumber = document.querySelector('#factory_number').value;
-        if (machineSerialNumber != machineMemoryInput) {            
-            machinesWaitingOn = true;
-            waiting_answer();
-            const requestData = {
-                serial_number: machineSerialNumber,
-                api_key: userid
-            };
-            machineMemoryInput = machineSerialNumber;
-            machines_api.send(JSON.stringify(requestData));
+    document.addEventListener('DOMContentLoaded', function() {
+        const tableTitles = document.getElementById('table_titles_machine');
+        const searchButton = document.querySelector('#search-button');
+
+        if (tableTitles) {
+            const inputs = tableTitles.querySelectorAll('input.search-input');
+            const sortButtons = tableTitles.querySelectorAll('button.sort-button');
+             let activeInput = null;
+
+
+            inputs.forEach(currentInput => {
+                currentInput.addEventListener('input', function() {
+                    inputs.forEach(input => {
+                        if (input !== currentInput) {
+                            input.value = '';
+                        }
+                    });activeInput = currentInput;
+                    sendRequestToServer();
+                });
+            });
+             sortButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    sortButtons.forEach(btn => {
+                        if (btn !== button) {
+                            btn.classList.remove('active')
+                        }
+                    });
+                    button.classList.toggle('active');
+                    sendRequestToServer();
+                });
+            });
+             searchButton.onclick = function() {
+                 sendRequestToServer();
+             };
+
+           function sendRequestToServer() {
+                const activeSortButtons = [];
+                sortButtons.forEach(button => {
+                    if (button.classList.contains('active')) {
+                        activeSortButtons.push(button.id);
+                    }
+                });
+                let requestData = {
+                    api_key: userid,
+                    filterBy: activeSortButtons,
+                };
+                if(activeInput && activeInput.value !== '') {
+                    requestData.query = [
+                        activeInput.id, activeInput.value
+                    ]
+                    requestData.filterBy = [
+                        activeInput.id,
+                        ...activeSortButtons
+                    ]
+                }
+                machines_api.send(JSON.stringify(requestData));
+            }
         }
-    };
+    });
 
     function waiting_answer() {
         const machineSerialNumber = document.querySelector('#factory_number');
