@@ -1,2 +1,2 @@
-django
-django-allauth
+django==5.1.4
+django-allauth==65.0.2
