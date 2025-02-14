@@ -1,0 +1,83 @@
+{% load static %}
+
+<style>
+.centered {
+    padding: 20px;
+    margin: 0 auto;
+}
+
+.great_space {
+    justify-content: space-between;
+    margin: 5px auto; 
+    width: 95%;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+hr {
+    width: 95%;
+    color: black;
+    background-color: black;
+    box-shadow: 0 5px 25px 5px black;
+    border: none;
+}
+
+</style>
+
+<div class="background_color_blue">
+    <div style="color: white; padding-bottom: 5px;">
+        <div class="header" style="display: flex; flex-direction: row; justify-content: space-between; margin: 5px auto; width: 95%;">
+            <p style="font-size: x-large; margin: auto 0;">API-ключи</p>
+            <button href="/apikey/create" id="change_context" class="auth" style="text-decoration: none; margin: 10px 5px; padding: 5px 10px;">
+            Изменить...
+            </button>
+        </div>
+        <div style="margin: 20px;"> 
+            <hr>
+            <div class="header background_color_blue great_space" style="display: flex; flex-direction: row;">
+                <p style="font-size: large; margin: auto 0;">Хендбуки для машин</p>
+                <a href="/handbook/machine?command=create" id="link1" class="auth" style="text-decoration: none; margin: 10px 5px; padding: 5px 10px;">
+                    Создать
+                </a>
+            </div>
+            <hr>
+            <div class="header background_color_blue great_space" style="display: flex; flex-direction: row;">
+                <p style="font-size: large; margin: auto 0;">Хендбуки для ТО</p>
+                <a href="/handbook/maintenance?command=create" id="link2" class="auth" style="text-decoration: none; margin: 10px 5px; padding: 5px 10px;">
+                    Создать
+                </a>
+            </div>
+            <hr>
+            <div class="header background_color_blue great_space" style="display: flex; flex-direction: row;">
+                <p style="font-size: large; margin: auto 0;">Хендбуки для рекламации</p>
+                <a href="/handbook/claim?command=create" id="link3" class="auth" style="text-decoration: none; margin: 10px 5px; padding: 5px 10px;">
+                    Создать
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const link1 = document.getElementById("link1");
+    const link2 = document.getElementById("link2");
+    const link3 = document.getElementById("link3");
+    const button = document.getElementById("change_context");
+    
+    let link1State = true;
+    let link2State = true;
+    let link3State = true;
+    
+    button.addEventListener("click", function() {
+        link1State = !link1State;
+        link2State = !link2State;
+        link3State = !link3State;
+
+        link1.textContent = link1State ? "Создать" : "Изменить";
+        link2.textContent = link2State ? "Создать" : "Изменить";
+        link3.textContent = link3State ? "Создать" : "Изменить";
+        link1.href = link1State ? "/handbook/machine?command=create" : "/handbook/machine?command=edit";
+        link2.href = link2State ? "/handbook/maintenance?command=create" : "/handbook/maintenance?command=edit";
+        link3.href = link3State ? "/handbook/claim?command=create" : "/handbook/claim?command=edit";
+    });
+</script>

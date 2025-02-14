@@ -16,5 +16,9 @@ urlpatterns = [
     path('accounts/profile/<str:table_name>/', profile_table),
     path('apikey/create/', apikey_create),
     path('apikey/delete/<int:pk>', apiket_delete),
+    path('handbook/<str:title>', handbooks, name='handbooks'),
+    path('handbook/<str:model_name>/<int:pk>/edit', handbook_edit),
+    path('handbook/<str:model_name>/create', handbook_create),
+    path('handbook/<str:model_name>/<int:pk>/detail/', handbook_detail, name='handbook_detail'), # Добавлено
     path('description/', show_description)
 ]

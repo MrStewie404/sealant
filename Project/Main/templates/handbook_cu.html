@@ -1,0 +1,17 @@
+{% extends 'flatpages/default.html' %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div>
+        <!-- <label for="id_name">Название:</label> -->
+        <textarea name="name" placeholder="Название" cols="40" rows="10" required="" id="id_name">{{ form.name.value }}</textarea>
+    </div>
+    <div>
+        <!-- <label for="id_description">Описание:</label> -->
+        <textarea name="description" placeholder="Описание" cols="40" rows="10" required="" id="id_description">{{ form.description.value }}</textarea>
+    </div>
+    <button>Сохранить</button>
+</form>
+
+{% endblock %}

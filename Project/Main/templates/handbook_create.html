@@ -1,0 +1,93 @@
+{% extends 'flatpages/default.html' %}
+
+{% load static %}
+{% load filters %}
+{% block content %}
+
+<style>
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 10px;
+        padding: 10px;
+        align-items: stretch;
+        justify-items: stretch;
+    }
+
+    .grid-item {
+        padding: 20px;
+        text-align: left;
+        margin: auto;
+        width: 80%;
+        max-width: 500px;
+        color: white;
+        box-shadow: 0px 0px 5px rgb(0, 0, 0);
+        transition: all 0.25s ease-out;
+    }
+
+    .grid-item:hover {
+        box-shadow: 0px 0px 10px rgb(0, 0, 0);
+    }
+</style>
+
+<body class="full-screen" style="border: none;">
+    <p style="font-size: xx-large; text-align: center;">{{ datas.model }}</p>
+    <div class="grid-container" style="margin: auto;">
+        {% for handbook in datas.handbooks %}
+            <div class="grid-item background_color_blue">
+                <div style="display: flex; flex-direction: row; justify-content: space-between; margin-bottom: 10px;">
+                    <p style="font-size: x-large; margin-top: 0; margin-bottom: 0;">{{ handbook.title }}</p>
+                    {% if command == 'create' %}
+                        <a href="/handbook/{{ handbook.model_name }}/{{ command }}" class="background_color_red" style="color: white; padding: 10px;">Создать</a>
+                    {% endif %}
+                </div>
+                <div style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;">
+                    {% for model in handbook.models %}
+                        {% if command == 'edit' %}
+                            <a href="/handbook/{{ handbook.model_name }}/{{ model.id }}/{{ command }}" class="background_color_red" style="color: white; padding: 10px;">
+                        {% else %}
+                            <a id="object_link" href="/description/" class="background_color_red" style="color: white; padding: 10px;"
+                            data-name="{{ model.name }}"
+                            data-description="{{ model.description }}">
+                        {% endif %}
+                            {{ model.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+
+<script>
+    // function getPageNameFromPath() {
+    //     const currentPath = window.location.pathname;
+    //     const trimmedPath = currentPath.startsWith('/') ? currentPath.substring(1) : currentPath;
+    //     const trimmedEndPath = trimmedPath.endsWith('/') ? trimmedPath.slice(0, -1) : trimmedPath;
+    //     const pathSegments = trimmedEndPath.split('/');
+    //     const pageName = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : '';
+    //     return pageName;
+    // }
+
+    // try {
+        document.addEventListener("DOMContentLoaded", function() {
+            const links = document.querySelectorAll("a#object_link"); // QuerySelectorAll потому что несколько элементов
+
+            links.forEach(link => {
+                const name = link.dataset.name; // Используем dataset для доступа к data-* атрибутам
+                const description = link.dataset.description;
+                const currentPage = window.location.href; //URL encode
+
+                const newHref = `/description/?last_page=${currentPage}&name=${name}&description=${description}`;
+
+                link.href = newHref; // Устанавливаем новый href
+
+                console.log(newHref);
+            });
+        });
+    // } catch (error) {
+    //     console.error("Ошибка при выполнении getPageNameFromPath() или установки href: ", error);
+    // }
+</script>
+
+{% endblock %}

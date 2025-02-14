@@ -2,6 +2,13 @@
 {% load static %}
 
 {% block content %}
+
+<style>
+    p {
+        margin: 0;
+    }
+</style>
+
 <div class="container full-screen">
     <div class="header" style="margin: 0 auto; margin-bottom: 50px; max-width: 70%;">
         <div class="logo" style="margin: 10px;">
@@ -18,13 +25,13 @@
             {% endif %}
         </div>
     </div>
-    <div style="width: 80%; margin: 0 auto">
+    <div style="width: 80%; margin: 0 auto;">
         <a style="font-size: 20px;" href="{{ data.last_page }}">
-            <button>НАЗАД</button>
+            <button style="margin-left: 0;">НАЗАД</button>
         </a>
-        <div style="display: flex; flex-direction: column; justify-content: space-between;">
-            <p style="font-size: 20px; margin: 50px auto;">{{ data.name }}</p>
-            <p style="font-size: 25px; margin: 0 auto;">{{ data.description }}</p>
+        <div class="background_color_blue" style="display: flex; flex-direction: column; gap: 10px; justify-content: center; align-items: center; margin-top: 20px; padding: 50px; color: white;">
+            <p style="font-size: 35px; font-weight: 900;">{{ data.name }}</p>
+            <p style="font-size: 20px;">{{ data.description }}</p>
         </div>
     </div>
 </div>

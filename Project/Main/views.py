@@ -1,11 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import logout
 from django.conf import settings
 from .models import *
 from .forms import *
+from django.apps import apps
 from .other import group_required
 import os
 
@@ -187,6 +188,90 @@ def apikey_create(request):
 def apiket_delete(request, pk):
     ApiKey.objects.get(id=pk).delete()
     return redirect(profile_redirect)
+
+def handbooks(request, title):
+    command = request.GET.get('command')
+    tables = [Machine, Maintenance, Claim]
+    if title == 'machine':
+        models = [
+            ["equipment_model", Technical_handbook],
+            ["engine_model", Engine_handbook],
+            ["transmission_model", Transmission_handbook],
+            ["drive_axle_model", Drive_axle_handbook],
+            ["steerable_axle_model", Steerable_axle_handbook]
+        ]
+        title = "Хендбуки машин"
+        table = tables[0]
+
+    elif title == 'maintenance':
+        models = [
+            ["maintenance_type", Maintenance_handbook]
+        ]
+        title = "Хендбуки сервисных компаний"
+        table = tables[1]
+
+    elif title == 'claim':
+        models = [
+            ["failure_node", Fault_handbook],
+            ["recovery_method", Recovery_handbook]
+        ]
+        title = "Хендбуки рекламации"
+        table = tables[2]
+
+    data = {
+        'model': title,
+        'handbooks': [{
+                'title': table._meta.get_field(model[0]).verbose_name,
+                'model_name': model[1].__name__,
+                'models': list(model[1].objects.all())
+            } for model in models]
+    }
+
+    return render(request, 'handbook_create.html', {'datas': data, 'command': command})
+
+def handbook_create(request, model_name):
+    command = request.GET.get('command')  # Получаем command
+    model_class = apps.get_model('Main', model_name)
+
+    if request.method == 'POST':
+        form = generate_model_form(model_class)(request.POST)
+        if form.is_valid():
+            instance = form.save()  # Сохраняем объект
+            return render(request, 'description.html', {'data': instance})
+        else:
+            # Если форма не валидна, передаем ее в шаблон для отображения ошибок
+            return render(request, 'description.html', {'data': instance})
+    else:
+        form = generate_model_form(model_class)()  # Пустая форма
+        context = {'form': form, 'model_name': model_name, 'action': 'create', 'command': command} # Добавляем command
+        return render(request, 'handbook_cu.html', context)
+
+def handbook_edit(request, model_name, pk):
+    command = request.GET.get('command')  # Получаем command
+    model_class = apps.get_model('Main', model_name)
+    instance = get_object_or_404(model_class, pk=pk)  # Получаем объект или возвращаем 404
+
+    if request.method == 'POST':
+        form = generate_model_form(model_class)(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()  # Сохраняем изменения
+            return render(request, 'description.html', {'data': instance})
+        else:
+            # Если форма не валидна, передаем ее в шаблон для отображения ошибок
+            return render(request, 'description.html', {'data': instance})
+    else:
+        form = generate_model_form(model_class)(instance=instance)  # Форма с данными
+        return render(request, 'handbook_cu.html', {'form': form, 'model_name': model_name, 'instance': instance, 'action': 'edit'}) #Важно: передаем model_name для отображения
+
+def handbook_detail(request, model_name, pk):
+    try:
+        model_class = apps.get_model('Main', model_name)
+    except LookupError:
+        return render(request, 'error.html', {'message': f'Модель {model_name} не найдена.'})
+
+    instance = get_object_or_404(model_class, pk=pk)
+    context = {'instance': instance, 'model_name': model_name}
+    return render(request, 'handbook_detail.html', context)
 
 @login_required
 def show_description(request):

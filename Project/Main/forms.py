@@ -105,3 +105,13 @@ class ClaimCreateForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+    
+def generate_model_form(model_class):
+    """Динамически создает ModelForm для данной модели."""
+
+    class ModelForm(forms.ModelForm):
+        class Meta:
+            model = model_class
+            fields = '__all__'  # Или укажите список полей, которые хотите отображать
+
+    return ModelForm

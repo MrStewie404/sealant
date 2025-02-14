@@ -37,7 +37,7 @@
                 {% include './claim.html' %}
             </div>
 
-            <div class="table-container" id="others" style="max-width: 450px;">
+            <div class="table-container" id="others" style="max-width: 450px; flex-direction: column; gap: 20px;">
                 <div id="table-content" class="background_color_blue" style="color: white;">
                     <div class="header" style="display: flex; flex-direction: row; justify-content: space-between; margin: 5px auto; width: 95%;">
                         <p style="font-size: x-large; margin: auto 0;">API-ключи</p>
@@ -78,6 +78,14 @@
                         {% endif %}
                     </div>
                 </div>
+
+                {% for group in request.user.groups.values_list %}
+                    {% if group|in_group:"Manager" %}
+                        <div>
+                            {% include './handbooks.html' %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
     </div>

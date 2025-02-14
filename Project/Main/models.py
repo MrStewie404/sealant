@@ -75,55 +75,55 @@ class Technical_handbook(models.Model):
     name = models.TextField(verbose_name="Название")
     description = models.TextField(verbose_name="Описание")
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 class Engine_handbook(models.Model):
     name = models.TextField(verbose_name="Название")
     description = models.TextField(verbose_name="Описание")
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 class Transmission_handbook(models.Model):
     name = models.TextField(verbose_name="Название")
     description = models.TextField(verbose_name="Описание")
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 class Drive_axle_handbook(models.Model):
     name = models.TextField(verbose_name="Название")
     description = models.TextField(verbose_name="Описание")
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 class Steerable_axle_handbook(models.Model):
     name = models.TextField(verbose_name="Название")
     description = models.TextField(verbose_name="Описание")
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 class Service_company(models.Model):
     name = models.TextField(verbose_name="Название")
     description = models.TextField(verbose_name="Описание")
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 class Maintenance_handbook(models.Model):
     name = models.TextField(verbose_name="Название")
     description = models.TextField(verbose_name="Описание")
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 class Fault_handbook(models.Model):
     name = models.TextField(verbose_name="Название")
     description = models.TextField(verbose_name="Описание")
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 class Recovery_handbook(models.Model):
     name = models.TextField(verbose_name="Название")
     description = models.TextField(verbose_name="Описание")
     def __str__(self):
-        return f"{self.name}"
+        return self.name
 
 class ApiKey(models.Model):
     id = models.AutoField(primary_key=True, auto_created=True)
