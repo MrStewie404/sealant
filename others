@@ -1,2 +1,12 @@
-login   admin2
-pwd     123
+При работе над проектом запуск сервера производился с использованием команды:
+python manage.py runserver 127.0.0.1:8001
+
+Для возможности получения таблиц через API использовался uvicorn.
+Команда для запуска: 
+uvicorn Project.asgi:application --host localhost --port 9090
+
+Логины: admin2, client, service_organization, manager Пароль (для всех): Password01
+
+
+
+https://github.com/MrStewie404/sealant/blob/1011cad94d1acd209343cbd7feb2515df7f2e637/README.md
